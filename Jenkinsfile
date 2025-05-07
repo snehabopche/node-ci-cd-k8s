@@ -6,10 +6,13 @@ pipeline {
   }
 
   stages {
-    stage('Clone Repository') {
-      steps {
-        git 'https://github.com/snehabopche/node-ci-cd-k8s.git'
-      }
+    
+      stage('Clone Repository') {
+  steps {
+    git branch: 'main', url: 'https://github.com/snehabopche/node-ci-cd-k8s.git'
+  }
+}
+
     }
 
     stage('Build Docker Image') {
