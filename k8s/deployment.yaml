@@ -1,9 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: node-ci-cd-k8s
+  name: node-ci-cd-k8s-deployment
+  labels:
+    app: node-ci-cd-k8s
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: node-ci-cd-k8s
@@ -13,10 +15,27 @@ spec:
         app: node-ci-cd-k8s
     spec:
       containers:
-      - name: node-ci-cd-k8s
-        image: snehakurve7/node-ci-cd-k8s
+      - name: node-ci-cd-k8s-container
+        image: snehakurve7/node-ci-cd-k8s:latest
         ports:
         - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "production"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      restartPolicy: Always
+
 ---
 apiVersion: v1
 kind: Service
@@ -27,7 +46,8 @@ spec:
     app: node-ci-cd-k8s
   ports:
     - protocol: TCP
-      port: 3000
+      port: 80
       targetPort: 3000
-  type: NodePort
-
+  type: LoadBalancer
+</content>
+</create_file>
