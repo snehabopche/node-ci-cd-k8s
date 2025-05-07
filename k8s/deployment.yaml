@@ -34,7 +34,6 @@ spec:
             port: 3000
           initialDelaySeconds: 30
           periodSeconds: 10
-      restartPolicy: Always
 
 ---
 apiVersion: v1
@@ -49,5 +48,3 @@ spec:
       port: 80
       targetPort: 3000
   type: LoadBalancer
-</content>
-</create_file>
