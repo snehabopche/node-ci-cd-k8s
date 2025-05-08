@@ -1,47 +1,47 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    DOCKER_IMAGE = 'snehakurve7/node-ci-cd-k8s'
-  }
-
-  stages {
-    stage('Clone Repository') {
-      steps {
-        git branch: 'main', url: 'https://github.com/snehabopche/node-ci-cd-k8s.git'
-      }
+    environment {
+        DOCKER_IMAGE = 'snehakurve7/node-ci-cd-k8s'
     }
 
-    stage('Build Docker Image') {
-      steps {
-        sh 'docker build -t $DOCKER_IMAGE .'
-      }
-    }
-
-    stage('Push to DockerHub') {
-      steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-          sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-          sh 'docker push $DOCKER_IMAGE'
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git branch: 'main', url: 'https://github.com/snehabopche/node-ci-cd-k8s.git'
+            }
         }
-      }
-    }
 
-    stage('Deploy to Kubernetes') {
-    steps {
-        script {
-            // Check if the kubeconfig file exists before copying
-            if (fileExists('/var/lib/jenkins/.kube/config')) {
-                sh '''
-                    mkdir -p $HOME/.kube
-                    cp /var/lib/jenkins/.kube/config $HOME/.kube/config
-                    kubectl apply -f k8s/deployment.yaml
-                '''
-            } else {
-                error("Kubeconfig file not found.")
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t $DOCKER_IMAGE .'
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                    sh 'docker push $DOCKER_IMAGE'
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    // Check if the kubeconfig file exists before copying
+                    if (fileExists('/var/lib/jenkins/.kube/config')) {
+                        sh '''
+                            mkdir -p $HOME/.kube
+                            cp /var/lib/jenkins/.kube/config $HOME/.kube/config
+                            kubectl apply -f k8s/deployment.yaml
+                        '''
+                    } else {
+                        error("Kubeconfig file not found.")
+                    }
+                }
             }
         }
     }
 }
-
-   
