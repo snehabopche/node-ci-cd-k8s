@@ -28,19 +28,20 @@ pipeline {
     }
 
     stage('Deploy to Kubernetes') {
-            steps {
+    steps {
+        script {
+            // Check if the kubeconfig file exists before copying
+            if (fileExists('/var/lib/jenkins/.kube/config')) {
                 sh '''
                     mkdir -p $HOME/.kube
                     cp /var/lib/jenkins/.kube/config $HOME/.kube/config
-                    kubectl apply -f k8s/deployment.yaml // Deploy to Kubernetes
+                    kubectl apply -f k8s/deployment.yaml
                 '''
-            }
-        }
-
-        stage('Cleanup') {
-            steps {
-                sh 'docker rmi $(docker images -f "dangling=true" -q) || true' // Cleanup dangling images
+            } else {
+                error("Kubeconfig file not found.")
             }
         }
     }
 }
+
+   
