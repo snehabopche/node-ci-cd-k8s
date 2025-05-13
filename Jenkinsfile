@@ -1,47 +1,40 @@
 pipeline {
     agent any
-
     environment {
-        DOCKER_IMAGE = 'snehakurve7/node-ci-cd-k8s'
+        DOCKER_HUB_CREDENTIALS = credentials('dockerhub')
     }
-
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/snehabopche/node-ci-cd-k8s.git'
+                git 'https://github.com/snehabopche/node-ci-cd-k8s.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE .'
+                sh 'docker build -t snehakurve7/node-ci-cd-k8s .'
             }
         }
 
         stage('Push to DockerHub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
                     sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                    sh 'docker push $DOCKER_IMAGE'
+                    sh 'docker push snehakurve7/node-ci-cd-k8s'
                 }
             }
         }
 
-        stage('Deploy to Kubernetes') {
+         stage('Deploy to Kubernetes') {
             steps {
-                script {
-                    // Check if the kubeconfig file exists before copying
-                    if (fileExists('/var/lib/jenkins/.kube/config')) {
-                        sh '''
-                            mkdir -p $HOME/.kube
-                            cp /var/lib/jenkins/.kube/config $HOME/.kube/config
-                            kubectl apply -f k8s/deployment.yaml
-                        '''
-                    } else {
-                        error("Kubeconfig file not found.")
-                    }
-                }
+                sh '''
+                    echo "Deploying to Kubernetes cluster..."
+                    kubectl apply -f k8s/deployment.yaml
+                    kubectl apply -f k8s/service.yaml
+                    kubectl get svc
+                '''
             }
         }
     }
 }
+
