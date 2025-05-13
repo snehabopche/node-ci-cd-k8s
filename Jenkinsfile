@@ -2,12 +2,6 @@ pipeline {
     agent any
 
     stages {
-        stage('Clone Repository') {
-            steps {
-                git 'https://github.com/snehabopche/node-ci-cd-k8s.git'
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
