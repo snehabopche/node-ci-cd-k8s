@@ -27,12 +27,22 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh '''
-                    echo "Deploying to Kubernetes cluster..."
-                    kubectl apply -f k8s/deployment.yaml
-                    kubectl apply -f k8s/service.yaml
-                    kubectl get svc
-                '''
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-eks-credentials'
+                ]]) {
+                    script {
+                        sh """
+                            echo "Configuring AWS CLI and kubeconfig..."
+                            aws eks update-kubeconfig --region us-east-1 --name jenkins-eks
+                            
+                            echo "Deploying to Kubernetes cluster..."
+                            kubectl apply --validate=false -f k8s/deployment.yaml
+                            kubectl apply --validate=false -f k8s/service.yaml
+                            kubectl get svc
+                        """
+                    }
+                }
             }
         }
     }
