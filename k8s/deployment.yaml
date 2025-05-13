@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: node-ci-cd-k8s-container
-        image: snehakurve7/node-ci-cd-k8s:latest
+        image: sneha1992/node-ci-cd-k8s:latest
         ports:
         - containerPort: 3000
         env:
